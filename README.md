@@ -20,7 +20,7 @@ A basic but fun Tetris game played within your cli terminal, written with Python
 
 ## Next Steps
 Future features to include include:
-- [ ] Display of future tiles
+- [ ] Display upcoming tiles
 - [ ] Local saving of high scores
 - [ ] Optimization to reduce CPU usage
 - [ ] Refactoring to clean up code
