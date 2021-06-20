@@ -14,6 +14,7 @@ A basic but fun Tetris game played within your terminal, written with Python 3 a
  - Use the Left and Right arrow keys to move the current tile back and forth
  - Use the Up Arrow Key to rotate the current tile clockwise
  - Use the Down Arrow Key to make the current block drop faster
+ - Use the Return/ Enter Key to drop the current tile immediately
  - You can press `P` to pause the game, or `Q` to exit
 3. Your score will be printed at the conclusion of the program, and the game will be cleaned up and hidden. Try to beat my high score of 10,900!
 
