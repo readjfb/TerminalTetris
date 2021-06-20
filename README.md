@@ -1,7 +1,7 @@
 # TerminalTetris
 A basic but fun Tetris game played within your terminal, written with Python 3 and the [Blessed Library](https://pypi.org/project/blessed/)
 
-<img width="665" alt="Tetris Demo Image" src="https://user-images.githubusercontent.com/15671813/122665067-c2cebf80-d16a-11eb-9460-a38f1c16c6e8.png">
+<img width="448" alt="Tetris Demo Image" src="https://user-images.githubusercontent.com/15671813/122665139-1ccf8500-d16b-11eb-9e6f-69eaffb0eac9.png">
 
 
 ## Program Setup
