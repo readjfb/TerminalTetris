@@ -28,11 +28,6 @@ PIECE_TYPES.append(s_piece)
 z_piece = [[7, 7, 0], [0, 7, 7]]
 PIECE_TYPES.append(z_piece)
 
-# LEFT = (-1, 0)
-# RIGHT = (1, 0)
-# UP = (0, -1)
-# DOWN = (0, 1)
-
 COLOR_DICT = {
     0: "  ",
     1: "🟥",
@@ -45,7 +40,7 @@ COLOR_DICT = {
     8: "⬜"
 }
 
-LEVEL_TIMES = {0: .5, 1: .3, 2: .25, 3: .2, 4: .15, 5: .1}
+LEVEL_TIMES = {0: .5, 1: .35, 2: .25, 3: .2, 4: .175, 5: .15}
 
 LINE_SCORES = {0: 0, 1: 40, 2: 100, 3: 300, 4: 1200}
 
@@ -143,6 +138,8 @@ class TetrisGame:
 
         i = self.HEIGHT - 1
 
+        level = ((self.cleared_lines // 10) + 1)
+
         while i >= 0:
             if not (0 in self.board[i]):
                 self.board[i] = [0 for i in range(self.WIDTH)]
@@ -153,9 +150,10 @@ class TetrisGame:
                 self.board[0] = [0 for i in range(self.WIDTH)]
             else:
                 i -= 1
+
         self.cleared_lines += num_lines
 
-        self.score += LINE_SCORES[num_lines] * ((self.cleared_lines // 10) + 1)
+        self.score += LINE_SCORES[num_lines] * level
 
     def move_block_down(self):
         if not self.verify_legal_move("DOWN"):
@@ -183,11 +181,11 @@ def render_scene(game, term):
     converted_board = ["".join(row) for row in converted_board]
 
     print(term.home + term.clear + term.move_yx(0, 0), end="")
-    print("⬜️" * (game.WIDTH + 2), end="", flush=False)
+    print("⬜️" * (game.WIDTH + 2), end="")
 
     for y in range(game.HEIGHT):
-        print(term.move_yx(1 + y, 0), end="")
-        print("⬜️" + converted_board[y] + "⬜️", end="")
+        print(term.move_yx(1 + y, 0) + "⬜️" + converted_board[y] + "⬜️",
+              end="")
 
     print(term.move_yx(game.HEIGHT + 1, 0) + "⬜️" * (game.WIDTH + 2), end="")
 
@@ -204,9 +202,10 @@ def render_scene(game, term):
     # Print the controls section
     print(term.move_yx(10, (2 * game.WIDTH) + 10) + "L/ R arrow keys strafe" +
           term.move_yx(11, (2 * game.WIDTH) + 10) + "Up arrow rotates" +
-          term.move_yx(12, (2 * game.WIDTH) + 10) + "Q quits" +
-          term.move_yx(13, (2 * game.WIDTH) + 10) + "P pauses",
-          term.move_yx(14, (2 * game.WIDTH) + 10) + "Return drops block",
+          term.move_yx(12, (2 * game.WIDTH) + 10) + "Down arrow lowers block" +
+          term.move_yx(13, (2 * game.WIDTH) + 10) + "Q quits" +
+          term.move_yx(14, (2 * game.WIDTH) + 10) + "P pauses",
+          term.move_yx(15, (2 * game.WIDTH) + 10) + "Return or space drops block",
           end="")
 
     print(end="", flush=True)
@@ -258,7 +257,6 @@ def main():
 
             if update_flag:
                 render_scene(main_game, term)
-
                 update_flag = False
 
             if main_game.check_game_end():
@@ -267,30 +265,34 @@ def main():
 
             inp = term.inkey(timeout=0)
 
-            if inp.is_sequence:
-                inp = inp.name
+            # if inp.is_sequence:
+            if inp.is_sequence or inp in (" ",):
+                inp_name = inp.name
 
-                if inp == "KEY_UP":
+                if inp_name == "KEY_UP":
                     if main_game.verify_legal_rotation("CW"):
                         main_game.active_piece.rotate_cw()
+                        prev_time += 0.07
                         update_flag = True
 
-                elif inp == "KEY_LEFT":
+                elif inp_name == "KEY_LEFT":
                     if main_game.verify_legal_move("LEFT"):
                         main_game.active_piece.move_left()
+                        prev_time += 0.07
                         update_flag = True
 
-                elif inp == "KEY_RIGHT":
+                elif inp_name == "KEY_RIGHT":
                     if main_game.verify_legal_move("RIGHT"):
                         main_game.active_piece.move_right()
+                        prev_time += 0.07
                         update_flag = True
 
-                elif inp == "KEY_DOWN":
+                elif inp_name == "KEY_DOWN":
                     main_game.move_block_down()
                     prev_time = time.time()
                     update_flag = True
 
-                elif inp == "KEY_ENTER":
+                elif inp_name in ("KEY_ENTER",) or inp in (" ",):
                     current_block = main_game.active_piece
 
                     while current_block == main_game.active_piece:
@@ -298,6 +300,7 @@ def main():
 
                     prev_time = time.time()
                     update_flag = True
+
 
             if time.time() >= prev_time + time_delta:
                 main_game.move_block_down()
