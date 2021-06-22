@@ -47,35 +47,52 @@ LINE_SCORES = {0: 0, 1: 40, 2: 100, 3: 300, 4: 1200}
 
 class TetrisGame:
     def __init__(self, width, height):
+        """
+        Stores a TetrisGame object with a board width x height
+
+        Contains most needed functions for playing the tetris game,
+        with the exception of the logic for determing when to do certain
+        events
+        """
+
         self.WIDTH = width
         self.HEIGHT = height
-
-        self.empty = 0
 
         self.active_piece = None
 
         # 0,0 is defined as the top left
-        self.board = [[self.empty for x in range(self.WIDTH)]
+        self.board = [[0 for x in range(self.WIDTH)]
                       for y in range(self.HEIGHT)]
 
         self.cleared_lines = 0
         self.score = 0
 
     def print_board(self):
-        # For debugging purposes; prints the board simply
+        """
+        For debugging purposes; prints the raw board in a basic manner
+        """
         for row in self.board:
             for col in row:
                 print(col, end="")
             print()
 
     def spawn_new_piece(self):
+        """
+        Deletes the current piece, and creates a new one in it's place.
+        Note- Does not do the saving of the current block
+        """
+
         del self.active_piece
 
         self.active_piece = Figure(random.choice(PIECE_TYPES),
                                    (self.WIDTH // 2 - 1, 0))
 
     def get_block_positions(self, fig):
-        # converts to cooridinates from a figure layout
+        """
+        Converts to cooridinates from a figure layout, as can be given by
+        the figure class
+        """
+
         block_positions = []
 
         for y, row in enumerate(fig):
@@ -87,6 +104,11 @@ class TetrisGame:
         return block_positions
 
     def verify_legal_move(self, direction):
+        """
+        Refrences the state of the current board and the current falling block
+        to determine if the falling block can move left, right, or down
+        without colliding with a wall or other block
+        """
         for block in self.get_block_positions(self.active_piece.FIGURE):
 
             position = block
@@ -111,6 +133,12 @@ class TetrisGame:
         return True
 
     def verify_legal_rotation(self, direction):
+        """
+        Refrences the state of the current board and the current falling block
+        to determine if the falling block can rotate clockwise or
+        counterclockwise (specified by direction = CW or CCW)without colliding
+        with a wall or other block
+        """
         test_figure = None
         if direction == "CW":
             test_figure = self.get_block_positions(
@@ -131,9 +159,21 @@ class TetrisGame:
         return True
 
     def check_game_end(self):
+        """
+        Returns if the game should be over, defined as a block being present
+        in the topmost row of the board
+        """
+
         return any([i != 0 for i in self.board[0]])
 
     def check_clear_lines(self):
+        """
+        Looks for full lines. If it finds one, it counts it,
+        clears it, and makes all of the lines above 'fall' down.
+        This repeats for any number of full lines
+
+        This function also increments the score according to the scoring rules
+        """
         num_lines = 0
 
         i = self.HEIGHT - 1
@@ -141,7 +181,7 @@ class TetrisGame:
         level = ((self.cleared_lines // 10) + 1)
 
         while i >= 0:
-            if not (0 in self.board[i]):
+            if 0 not in self.board[i]:
                 self.board[i] = [0 for i in range(self.WIDTH)]
                 num_lines += 1
 
@@ -156,8 +196,13 @@ class TetrisGame:
         self.score += LINE_SCORES[num_lines] * level
 
     def move_block_down(self):
+        """
+        Moves the currently falling block down- Handles the logic for
+        detecting if the falling block can move down without impedance, or if
+        it should be placed onto the static board, and a new block spawned
+        """
         if not self.verify_legal_move("DOWN"):
-            # place the block on the grid
+            # If it can't move down, place the block on the grid
             for block in self.get_block_positions(self.active_piece.FIGURE):
                 self.board[block[1]][block[0]] = self.active_piece.COLOR
 
@@ -170,6 +215,13 @@ class TetrisGame:
 
 
 def render_scene(game, term):
+    """
+    Uses the game object and terminal object to render the scene using the
+    Blessings library
+
+    It first prints the board, then prints the scores and other useful words
+    such as the help section
+    """
     converted_board = [[COLOR_DICT[color] for color in row]
                        for row in game.board]
 
@@ -213,6 +265,10 @@ def render_scene(game, term):
 
 
 def pause_handler(term):
+    """
+    This function is used as a pause; it waits for the user to input either p
+    or q, while displaying the relevant dialog on screen
+    """
     print(term.home + term.clear + term.move_y(term.height // 2))
     print(term.black_on_white(term.center('press P to continue.')))
 
@@ -253,16 +309,18 @@ def main():
 
             level = main_game.cleared_lines // 10
 
-            if level in LEVEL_TIMES.keys():
-                time_delta = LEVEL_TIMES[level]
-
-            if update_flag:
-                render_scene(main_game, term)
-                update_flag = False
-
             if main_game.check_game_end():
                 end_flag = True
                 break
+
+            # Rendering first makes it smoother for some reason
+            if update_flag:
+                # Update the time before piece is moved down
+                if level in LEVEL_TIMES.keys():
+                    time_delta = LEVEL_TIMES[level]
+
+                render_scene(main_game, term)
+                update_flag = False
 
             inp = term.inkey(timeout=0)
 
