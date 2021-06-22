@@ -200,12 +200,13 @@ def render_scene(game, term):
           end="")
 
     # Print the controls section
-    print(term.move_yx(10, (2 * game.WIDTH) + 10) + "L/ R arrow keys strafe" +
-          term.move_yx(11, (2 * game.WIDTH) + 10) + "Up arrow rotates" +
-          term.move_yx(12, (2 * game.WIDTH) + 10) + "Down arrow lowers block" +
-          term.move_yx(13, (2 * game.WIDTH) + 10) + "Q quits" +
-          term.move_yx(14, (2 * game.WIDTH) + 10) + "P pauses",
-          term.move_yx(15, (2 * game.WIDTH) + 10) + "Return or space drops block",
+    print(term.move_yx(10, (2 * game.WIDTH) + 10) + "Left:   ←" +
+          term.move_yx(11, (2 * game.WIDTH) + 10) + "Right:  →" +
+          term.move_yx(12, (2 * game.WIDTH) + 10) + "Down:   ↓" +
+          term.move_yx(13, (2 * game.WIDTH) + 10) + "Rotate: ↑" +
+          term.move_yx(14, (2 * game.WIDTH) + 10) + "Drop:   space/ return" +
+          term.move_yx(15, (2 * game.WIDTH) + 10) + "Pause:  p",
+          term.move_yx(16, (2 * game.WIDTH) + 10) + "Quit:   q",
           end="")
 
     print(end="", flush=True)
@@ -265,42 +266,39 @@ def main():
 
             inp = term.inkey(timeout=0)
 
-            # if inp.is_sequence:
-            if inp.is_sequence or inp in (" ",):
-                inp_name = inp.name
+            inp_name = inp.name
 
-                if inp_name == "KEY_UP":
-                    if main_game.verify_legal_rotation("CW"):
-                        main_game.active_piece.rotate_cw()
-                        prev_time += 0.07
-                        update_flag = True
+            if inp_name == "KEY_UP":
+                if main_game.verify_legal_rotation("CW"):
+                    main_game.active_piece.rotate_cw()
+                    prev_time += 0.07
+                    update_flag = True
 
-                elif inp_name == "KEY_LEFT":
-                    if main_game.verify_legal_move("LEFT"):
-                        main_game.active_piece.move_left()
-                        prev_time += 0.07
-                        update_flag = True
+            elif inp_name == "KEY_LEFT":
+                if main_game.verify_legal_move("LEFT"):
+                    main_game.active_piece.move_left()
+                    prev_time += 0.07
+                    update_flag = True
 
-                elif inp_name == "KEY_RIGHT":
-                    if main_game.verify_legal_move("RIGHT"):
-                        main_game.active_piece.move_right()
-                        prev_time += 0.07
-                        update_flag = True
+            elif inp_name == "KEY_RIGHT":
+                if main_game.verify_legal_move("RIGHT"):
+                    main_game.active_piece.move_right()
+                    prev_time += 0.07
+                    update_flag = True
 
-                elif inp_name == "KEY_DOWN":
+            elif inp_name == "KEY_DOWN":
+                main_game.move_block_down()
+                prev_time = time.time()
+                update_flag = True
+
+            elif inp_name in ("KEY_ENTER", ) or inp in (" ", ):
+                current_block = main_game.active_piece
+
+                while current_block == main_game.active_piece:
                     main_game.move_block_down()
-                    prev_time = time.time()
-                    update_flag = True
 
-                elif inp_name in ("KEY_ENTER",) or inp in (" ",):
-                    current_block = main_game.active_piece
-
-                    while current_block == main_game.active_piece:
-                        main_game.move_block_down()
-
-                    prev_time = time.time()
-                    update_flag = True
-
+                prev_time = time.time()
+                update_flag = True
 
             if time.time() >= prev_time + time_delta:
                 main_game.move_block_down()
@@ -309,7 +307,7 @@ def main():
 
     if end_flag:
         print("Game over")
-        # main_game.print_board()
+
     print(f"Score: {term.bold(str(main_game.score))}")
     print(f"Lines Cleared: {term.bold(str(main_game.cleared_lines))}")
 
