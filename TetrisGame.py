@@ -146,7 +146,7 @@ class TetrisGame:
             if b_y < 0 or b_y >= self.HEIGHT:
                 return False
 
-            if self.board[b_x][b_y] != 0:
+            if self.board[b_y][b_x] != 0:
                 return False
         return True
 
@@ -196,7 +196,7 @@ class TetrisGame:
         if not self.verify_legal_move("DOWN"):
             # If it can't move down, place the block on the grid
             for b_x, b_y in self.get_block_positions(self.active_piece.FIGURE):
-                self.board[b_x][b_y] = self.active_piece.COLOR
+                self.board[b_y][b_x] = self.active_piece.COLOR
 
             self.check_clear_lines()
 
