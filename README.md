@@ -1,5 +1,5 @@
 # TerminalTetris
-A basic but fun Tetris game played within your cli terminal, written with Python 3 and the [Blessed Library](https://pypi.org/project/blessed/). The game runs fully within the Terminal or console window, and should work accross Mac, Linus, and PC platforms. 
+A basic but fun Tetris game played within your cli terminal, written with Python 3 and the [Blessed Library](https://pypi.org/project/blessed/). The game runs fully within the Terminal or console window, and should work accross Mac, Linux, and PC platforms. 
 
 ![Terminal Tetris Demo](https://user-images.githubusercontent.com/15671813/122860963-46f88280-d2e4-11eb-9e5e-11ca3ca17edd.gif)
 
