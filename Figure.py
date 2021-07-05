@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 class Figure:
-    def __init__(self, shape, position=(0, 0)):
+    def __init__(self, shape, x=0, y=0):
         self.FIGURE = shape
 
         self.COLOR = None
@@ -11,7 +11,8 @@ class Figure:
                 self.COLOR = i
                 break
 
-        self.position = position
+        self.x = x
+        self.y = y
 
     def print_self(self):
         for row in self.FIGURE:
@@ -46,13 +47,13 @@ class Figure:
         self.FIGURE = self.get_ccw_rotation()
 
     def move_left(self):
-        self.position = (self.position[0] - 1, self.position[1])
+        self.x -= 1
 
     def move_right(self):
-        self.position = (self.position[0] + 1, self.position[1])
+        self.x += 1
 
     def move_down(self):
-        self.position = (self.position[0], self.position[1] + 1)
+        self.y += 1
 
 
 if __name__ == "__main__":

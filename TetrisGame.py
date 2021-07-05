@@ -28,19 +28,9 @@ PIECE_TYPES.append(s_piece)
 z_piece = [[7, 7, 0], [0, 7, 7]]
 PIECE_TYPES.append(z_piece)
 
-COLOR_DICT = {
-    0: "  ",
-    1: "🟥",
-    2: "🟫",
-    3: "🟦",
-    4: "🟪",
-    5: "🟨",
-    6: "🟩",
-    7: "🟧",
-    8: "⬜"
-}
+COLOR_DICT = {0: "  ", 1: "🟥", 2: "🟫", 3: "🟦", 4: "🟪", 5: "🟨", 6: "🟩", 7: "🟧", 8: "⬜"}
 
-LEVEL_TIMES = {0: .5, 1: .35, 2: .25, 3: .2, 4: .175, 5: .15}
+LEVEL_TIMES = {0: 0.5, 1: 0.35, 2: 0.25, 3: 0.2, 4: 0.175, 5: 0.15}
 
 LINE_SCORES = {0: 0, 1: 40, 2: 100, 3: 300, 4: 1200}
 
@@ -61,8 +51,7 @@ class TetrisGame:
         self.active_piece = None
 
         # 0,0 is defined as the top left
-        self.board = [[0 for x in range(self.WIDTH)]
-                      for y in range(self.HEIGHT)]
+        self.board = [[0] * self.WIDTH for y in range(self.HEIGHT)]
 
         self.cleared_lines = 0
         self.score = 0
@@ -84,51 +73,56 @@ class TetrisGame:
 
         del self.active_piece
 
-        self.active_piece = Figure(random.choice(PIECE_TYPES),
-                                   (self.WIDTH // 2 - 1, 0))
+        new_x = self.WIDTH // 2 - 1
+        self.active_piece = Figure(random.choice(PIECE_TYPES), new_x, 0)
 
     def get_block_positions(self, fig):
         """
-        Converts to cooridinates from a figure layout, as can be given by
+        Converts to coordinates from a figure layout, as can be given by
         the figure class
         """
-
         block_positions = []
 
-        for y, row in enumerate(fig):
-            for x, col in enumerate(row):
-                if col != 0:
-                    block_positions.append((x + self.active_piece.position[0],
-                                            y + self.active_piece.position[1]))
+        # Iterates through y + active_piece.y and x + active_piece.x
+        for y, row in enumerate(fig, start=self.active_piece.y):
+            for x, val in enumerate(row, start=self.active_piece.x):
+                if val != 0:
+                    block_positions.append((x, y))
 
         return block_positions
 
     def verify_legal_move(self, direction):
-        """
-        Refrences the state of the current board and the current falling block
+        """Refrences the state of the current board and the current falling block
         to determine if the falling block can move left, right, or down
         without colliding with a wall or other block
-        """
-        for block in self.get_block_positions(self.active_piece.FIGURE):
 
-            position = block
+        Args:
+            direction (str): either LEFT, RIGHT, DOWN
+
+        Raises:
+            ValueError: If direction is invalid
+
+        Returns:
+            bool: if the particular direction is legal
+        """
+        for b_x, b_y in self.get_block_positions(self.active_piece.FIGURE):
 
             if direction == "LEFT":
-                position = (position[0] - 1, position[1])
+                b_x -= 1
             elif direction == "RIGHT":
-                position = (position[0] + 1, position[1])
+                b_x += 1
             elif direction == "DOWN":
-                position = (position[0], position[1] + 1)
-            # else:
-            #     raise ValueError
+                b_y += 1
+            else:
+                raise ValueError
 
-            if position[0] < 0 or position[0] >= self.WIDTH:
+            if b_x < 0 or b_x >= self.WIDTH:
                 return False
 
-            if position[1] < 0 or position[1] >= self.HEIGHT:
+            if b_y < 0 or b_y >= self.HEIGHT:
                 return False
 
-            if self.board[position[1]][position[0]] != 0:
+            if self.board[b_y][b_x] != 0:
                 return False
         return True
 
@@ -141,20 +135,18 @@ class TetrisGame:
         """
         test_figure = None
         if direction == "CW":
-            test_figure = self.get_block_positions(
-                self.active_piece.get_cw_rotation())
+            test_figure = self.get_block_positions(self.active_piece.get_cw_rotation())
         elif direction == "CCW":
-            test_figure = self.get_block_positions(
-                self.active_piece.get_ccw_rotation())
+            test_figure = self.get_block_positions(self.active_piece.get_ccw_rotation())
 
-        for block in test_figure:
-            if block[0] < 0 or block[0] >= self.WIDTH:
+        for b_x, b_y in test_figure:
+            if b_x < 0 or b_x >= self.WIDTH:
                 return False
 
-            if block[1] < 0 or block[1] >= self.HEIGHT:
+            if b_y < 0 or b_y >= self.HEIGHT:
                 return False
 
-            if self.board[block[1]][block[0]] != 0:
+            if self.board[b_x][b_y] != 0:
                 return False
         return True
 
@@ -178,7 +170,7 @@ class TetrisGame:
 
         i = self.HEIGHT - 1
 
-        level = ((self.cleared_lines // 10) + 1)
+        level = (self.cleared_lines // 10) + 1
 
         while i >= 0:
             if 0 not in self.board[i]:
@@ -203,8 +195,8 @@ class TetrisGame:
         """
         if not self.verify_legal_move("DOWN"):
             # If it can't move down, place the block on the grid
-            for block in self.get_block_positions(self.active_piece.FIGURE):
-                self.board[block[1]][block[0]] = self.active_piece.COLOR
+            for b_x, b_y in self.get_block_positions(self.active_piece.FIGURE):
+                self.board[b_x][b_y] = self.active_piece.COLOR
 
             self.check_clear_lines()
 
@@ -222,8 +214,7 @@ def render_scene(game, term):
     It first prints the board, then prints the scores and other useful words
     such as the help section
     """
-    converted_board = [[COLOR_DICT[color] for color in row]
-                       for row in game.board]
+    converted_board = [[COLOR_DICT[color] for color in row] for row in game.board]
 
     col = COLOR_DICT[game.active_piece.COLOR]
 
@@ -236,30 +227,42 @@ def render_scene(game, term):
     print("⬜️" * (game.WIDTH + 2), end="")
 
     for y in range(game.HEIGHT):
-        print(term.move_yx(1 + y, 0) + "⬜️" + converted_board[y] + "⬜️",
-              end="")
+        print(term.move_yx(1 + y, 0) + "⬜️" + converted_board[y] + "⬜️", end="")
 
     print(term.move_yx(game.HEIGHT + 1, 0) + "⬜️" * (game.WIDTH + 2), end="")
 
     # Print the game name and scores
-    print(term.move_yx(3, (2 * game.WIDTH) + 10) +
-          term.underline_bold("Terminal Tetris") +
-          term.move_yx(4, (2 * game.WIDTH) + 10) +
-          f"By {term.link('https://github.com/readjfb', 'J. Bremen')}" +
-          term.move_yx(5, (2 * game.WIDTH) + 10) +
-          f"Lines Cleared: {game.cleared_lines}" +
-          term.move_yx(6, (2 * game.WIDTH) + 10) + f"Score: {game.score}",
-          end="")
+    colunn_index = (2 * game.WIDTH) + 10
+
+    print(
+        term.move_yx(3, colunn_index)
+        + term.underline_bold("Terminal Tetris")
+        + term.move_yx(4, colunn_index)
+        + f"By {term.link('https://github.com/readjfb', 'J. Bremen')}"
+        + term.move_yx(5, colunn_index)
+        + f"Lines Cleared: {game.cleared_lines}"
+        + term.move_yx(6, colunn_index)
+        + f"Score: {game.score}",
+        end="",
+    )
 
     # Print the controls section
-    print(term.move_yx(10, (2 * game.WIDTH) + 10) + "Left:   ←" +
-          term.move_yx(11, (2 * game.WIDTH) + 10) + "Right:  →" +
-          term.move_yx(12, (2 * game.WIDTH) + 10) + "Down:   ↓" +
-          term.move_yx(13, (2 * game.WIDTH) + 10) + "Rotate: ↑" +
-          term.move_yx(14, (2 * game.WIDTH) + 10) + "Drop:   space/ return" +
-          term.move_yx(15, (2 * game.WIDTH) + 10) + "Pause:  p",
-          term.move_yx(16, (2 * game.WIDTH) + 10) + "Quit:   q",
-          end="")
+    print(
+        term.move_yx(10, colunn_index)
+        + "Left:   ←"
+        + term.move_yx(11, colunn_index)
+        + "Right:  →"
+        + term.move_yx(12, colunn_index)
+        + "Down:   ↓"
+        + term.move_yx(13, colunn_index)
+        + "Rotate: ↑"
+        + term.move_yx(14, colunn_index)
+        + "Drop:   space/ return"
+        + term.move_yx(15, colunn_index)
+        + "Pause:  p",
+        term.move_yx(16, colunn_index) + "Quit:   q",
+        end="",
+    )
 
     print(end="", flush=True)
 
@@ -269,15 +272,12 @@ def pause_handler(term):
     This function is used as a pause; it waits for the user to input either p
     or q, while displaying the relevant dialog on screen
     """
-    print(term.home + term.clear + term.move_y(term.height // 2))
-    print(term.black_on_white(term.center('press P to continue.')))
-
     inp = None
-    while inp not in (u'p', u'P'):
-        inp = term.inkey()
+    while inp not in ("p", "P", "q", "Q"):
+        print(term.home + term.clear + term.move_y(term.height // 2))
+        print(term.black_on_white(term.center("press P to continue.")))
 
-        if inp in (u'q', u'Q'):
-            return
+        inp = term.inkey(timeout=10)
 
 
 def main():
@@ -290,7 +290,7 @@ def main():
 
     prev_time = time.time()
 
-    time_delta = .5
+    time_delta = 0.5
 
     inp = None
 
@@ -299,8 +299,8 @@ def main():
     end_flag = False
 
     with term.hidden_cursor(), term.cbreak(), term.fullscreen():
-        while inp not in (u'q', u'Q'):
-            if inp in (u'p', u'P'):
+        while inp not in ("q", "Q"):
+            if inp in ("p", "P"):
                 pause_handler(term)
                 inp = None
                 prev_time = time.time()
@@ -349,7 +349,7 @@ def main():
                 prev_time = time.time()
                 update_flag = True
 
-            elif inp_name in ("KEY_ENTER", ) or inp in (" ", ):
+            elif inp_name in ("KEY_ENTER",) or inp in (" ",):
                 current_block = main_game.active_piece
 
                 while current_block == main_game.active_piece:
@@ -370,5 +370,5 @@ def main():
     print(f"Lines Cleared: {term.bold(str(main_game.cleared_lines))}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
